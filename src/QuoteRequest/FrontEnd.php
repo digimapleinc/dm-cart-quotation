@@ -39,10 +39,8 @@ class FrontEnd {
 
 		add_filter( 'render_block', [ self::class, 'dm_woocommerce_cart_block_do_actions' ], 9999, 2 );
 
-		add_action( 'wp_ajax_nopriv_create_quotation_link', [ self::class, 'create_quotation_link' ] );
+		// Admin-only AJAX actions - no nopriv needed
 		add_action( 'wp_ajax_create_quotation_link', [ self::class, 'create_quotation_link' ] );
-
-		add_action( 'wp_ajax_nopriv_empty_cart_quotation', [ self::class, 'empty_cart_quotation' ] );
 		add_action( 'wp_ajax_empty_cart_quotation', [ self::class, 'empty_cart_quotation' ] );
 	
 		add_action('woocommerce_checkout_create_order', [ self::class, 'dm_add_quotation_token_checkout'], 10, 2);
@@ -262,8 +260,36 @@ class FrontEnd {
 	 * @return void
 	 */
 	public static function empty_cart_quotation() {
+		// Verify nonce for security
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'wcq_empty_cart' ) ) {
+			wp_send_json_error(
+				[
+					'message' => 'Security verification failed',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
+		}
+
+		// Check if user is logged in and has administrator capability
+		if ( ! is_user_logged_in() || ! current_user_can( 'administrator' ) ) {
+			wp_send_json_error(
+				[
+					'message' => 'You are not allowed to perform this action',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
+		}
+
 		if ( WC()->cart->is_empty() ) {
-			return;
+			wp_send_json_error(
+				[
+					'message' => 'Cart is already empty',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
 		}
 
 		WC()->cart->empty_cart();
@@ -345,19 +371,36 @@ class FrontEnd {
 	 * @return void
 	 */
 	public static function create_quotation_link() {
-		$result = [];
-		if ( ! is_admin() ) {
-			$result = [
-				'message' => 'You are not allowed to perform this action',
-				'status'  => 'error',
-			];
+		// Verify nonce for security
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'wcq_create_quotation' ) ) {
+			wp_send_json_error(
+				[
+					'message' => 'Security verification failed',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
+		}
+
+		// Check if user is logged in and has administrator capability
+		if ( ! is_user_logged_in() || ! current_user_can( 'administrator' ) ) {
+			wp_send_json_error(
+				[
+					'message' => 'You are not allowed to perform this action',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
 		}
 
 		if ( WC()->cart->is_empty() ) {
-			$result = [
-				'message' => 'Your cart is empty. Cannot Create Quotation',
-				'status'  => 'error',
-			];
+			wp_send_json_error(
+				[
+					'message' => 'Your cart is empty. Cannot Create Quotation',
+					'status'  => 'error',
+				]
+			);
+			wp_die();
 		}
 
 		$quotation_token = self::save_quotation();

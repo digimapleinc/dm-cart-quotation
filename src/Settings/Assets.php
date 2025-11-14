@@ -42,10 +42,10 @@ class Assets
 	 */
 	public static function add_settings_assets()
 	{
-		 
-		
+
+
 		if (is_page( wc_get_page_id( 'cart' ) )) {
-			
+
 			// Enqueue the stylesheet
 			wp_enqueue_style(
 				'wcq-style', // Handle
@@ -72,7 +72,11 @@ class Assets
 			wp_localize_script(
 				'wcq-script',
 				'ajax_object',
-				['ajax_url' => admin_url('admin-ajax.php')]
+				[
+					'ajax_url' => admin_url('admin-ajax.php'),
+					'create_quotation_nonce' => wp_create_nonce('wcq_create_quotation'),
+					'empty_cart_nonce' => wp_create_nonce('wcq_empty_cart'),
+				]
 			);
 		}
 	}

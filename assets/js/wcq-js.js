@@ -11,6 +11,7 @@ jQuery(document).ready(function ($) {
 			method: "POST", // The HTTP method used for the request.
 			data: {
 				action: "create_quotation_link", // The action that will trigger a specific PHP function.
+				nonce: ajax_object.create_quotation_nonce, // Security nonce
 			},
 			success: function (response) {
 				// This function executes if the AJAX request is successful.
@@ -71,6 +72,7 @@ jQuery(document).ready(function ($) {
 			method: "POST", // The HTTP method used for the request.
 			data: {
 				action: "empty_cart_quotation", // The action that will trigger a specific PHP function.
+				nonce: ajax_object.empty_cart_nonce, // Security nonce
 			},
 			success: function (response) {
 				// This function executes if the AJAX request is successful.
