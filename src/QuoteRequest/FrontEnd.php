@@ -31,8 +31,6 @@ class FrontEnd {
 
 		add_filter( 'query_vars', [ self::class, 'add_query_vars_filter' ] );
 
-		// Buffer the output
-		ob_start();
 		add_action( 'wp_head', [ self::class, 'process_quotation' ] );
 
 		add_action( 'woocommerce_before_cart', [ self::class, 'dm_quotation_button' ] );
@@ -296,20 +294,13 @@ class FrontEnd {
 
 		$messages = Utilities::wcq_get_setting( 'messages' );
 
-		try {
-			$result = [
-				'message'  => sprintf( '%s', $messages['success']['cart_empty'] ),
-				'status'   => 'success',
-				'redirect' => wc_get_cart_url(),
-			];
-		} catch ( \Throwable $e ) {
-			$result = [
-				'message' => sprintf( '%s', $messages['error']['cart_empty'] ),
-				'status'  => 'error',
-			];
-		}
+		$result = [
+			'message'  => sprintf( '%s', $messages['success']['cart_empty'] ),
+			'status'   => 'success',
+			'redirect' => wc_get_cart_url(),
+		];
 
-		wp_send_json_success( $result ); // Send a JSON success response
+		wp_send_json_success( $result );
 		wp_die();
 	}
 
@@ -353,7 +344,7 @@ class FrontEnd {
 
 				if ( $cart ) {
 					// Set the quotation token in the session and save in the database
-					wc()->session->set('quotation_token', $token );
+					WC()->session->set( 'quotation_token', $token );
 					foreach ( $cart as $item ) {
 						$product_id = $item['product_id'];
 						$quantity   = $item['quantity'];
@@ -414,20 +405,13 @@ class FrontEnd {
 			site_url( '/cart/' )
 		);
 
-		try {
-			$result = [
-				'link'    => $quotation_url,
-				'message' => sprintf( '%s', $messages['success']['cart_quote'] ),
-				'status'  => 'success',
-			];
-		} catch ( \Throwable $e ) {
-			$result = [
-				'message' => sprintf( '%s', $messages['error']['cart_quote'] ),
-				'status'  => 'error',
-			];
-		}
+		$result = [
+			'link'    => $quotation_url,
+			'message' => sprintf( '%s', $messages['success']['cart_quote'] ),
+			'status'  => 'success',
+		];
 
-		wp_send_json_success( $result ); // Send a JSON success response
+		wp_send_json_success( $result );
 		wp_die();
 	}
 

@@ -93,7 +93,7 @@ class Utilities {
 	 * @return void
 	 */
 	public static function load_wcq_textdomain() {
-		load_plugin_textdomain( 'dmcq', false, WCQ_DIR . '/languages' );
+		load_plugin_textdomain( 'dm-cart-quotation', false, WCQ_DIR . '/languages' );
 	}
 
 	/**

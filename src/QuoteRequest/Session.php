@@ -20,11 +20,9 @@ class Session {
 	 * @return string The generated customer ID.
 	 */
 	public static function wcq_generate_customer_id() {
-
-		// @phpstan-ignore-next-line
-		$hasher  = generate_quote_hash( 8, false );
-		$user_id = get_current_user_id() ?? 'q';
-		return $user_id . '_' . substr( md5( $hasher->get_random_bytes( 32 ) ), 2 );
+		$user_id = get_current_user_id() ? get_current_user_id() : 'q';
+		$random_token = generate_quote_hash( 16 ); // Generates 32-character hex string
+		return $user_id . '_' . $random_token;
 	}
 
 	/**
@@ -37,19 +35,18 @@ class Session {
 	public static function wcq_save_session_as_quotation( $cart_data, $_customer_id ) {
 		global $wpdb;
 
-		$_table = $GLOBALS['wpdb']->prefix . 'woocommerce_sessions';
-
+		$table = $wpdb->prefix . 'woocommerce_sessions';
 		$_session_expiration = time() + intval( apply_filters( 'wc_session_expiration', 60 * 60 * 360 ) ); // 15 days
-		global $wpdb;
-		$table = $wpdb->prefix.'woocommerce_sessions';
+
 		$data = array(
-			'session_key' => $_customer_id, 
+			'session_key' => $_customer_id,
 			'session_value' => maybe_serialize( $cart_data ),
 			'session_expiry' => $_session_expiration
 		);
-		$format = array('%s','%s', '%s'); 
+		$format = array( '%s', '%s', '%s' );
+
 		// @codingStandardsIgnoreStart
-		$wpdb->insert($table,$data,$format);
+		$wpdb->insert( $table, $data, $format );
 		// @codingStandardsIgnoreEnd
 		$insert_id = $wpdb->insert_id;
 
@@ -72,8 +69,9 @@ class Session {
 		$value = false;
 
 		if ( $customer_id ) {
-			$_table = $GLOBALS['wpdb']->prefix . 'woocommerce_sessions';
-			$value = $wpdb->get_var($wpdb->prepare("SELECT session_value FROM $_table WHERE session_key = %s", $customer_id)); // @codingStandardsIgnoreLine.
+			$table = $wpdb->prefix . 'woocommerce_sessions';
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$value = $wpdb->get_var( $wpdb->prepare( "SELECT session_value FROM {$table} WHERE session_key = %s", $customer_id ) );
 		}
 
 		return maybe_unserialize( $value );
@@ -89,15 +87,15 @@ class Session {
 	public static function wcq_delete_session( $customer_id ) {
 		global $wpdb;
 
-		$_table = $GLOBALS['wpdb']->prefix . 'woocommerce_sessions';
+		$table = $wpdb->prefix . 'woocommerce_sessions';
+
 		// @codingStandardsIgnoreStart
 		$wpdb->delete(
-			$_table,
+			$table,
 			[
 				'session_key' => $customer_id,
 			]
-		); 
+		);
 		// @codingStandardsIgnoreEnd
-
 	}
 }
