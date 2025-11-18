@@ -53,6 +53,10 @@ class Session {
 		if ( $insert_id ) {
 			return $_customer_id;
 		} else {
+			// Log error if insert failed
+			if ( ! empty( $wpdb->last_error ) ) {
+				error_log( sprintf( 'WCQ: Failed to save quotation session. Error: %s', $wpdb->last_error ) );
+			}
 			return false;
 		}
 	}
@@ -82,7 +86,7 @@ class Session {
 	 *
 	 * @param string $customer_id The customer ID associated with the session to delete.
 	 *
-	 * @return void
+	 * @return bool True on success, false on failure.
 	 */
 	public static function wcq_delete_session( $customer_id ) {
 		global $wpdb;
@@ -90,12 +94,61 @@ class Session {
 		$table = $wpdb->prefix . 'woocommerce_sessions';
 
 		// @codingStandardsIgnoreStart
-		$wpdb->delete(
+		$result = $wpdb->delete(
 			$table,
 			[
 				'session_key' => $customer_id,
 			]
 		);
 		// @codingStandardsIgnoreEnd
+
+		if ( $result === false ) {
+			// Log error if delete failed
+			if ( ! empty( $wpdb->last_error ) ) {
+				error_log( sprintf( 'WCQ: Failed to delete quotation session %s. Error: %s', $customer_id, $wpdb->last_error ) );
+			}
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Cleans up expired quotation sessions from the database.
+	 *
+	 * This method is called by the WP-Cron job to remove old sessions
+	 * and prevent database bloat. It removes all quotation sessions (identified
+	 * by session_key pattern) that have expired.
+	 *
+	 * @return int Number of sessions deleted.
+	 */
+	public static function wcq_cleanup_expired_sessions() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'woocommerce_sessions';
+		$current_time = time();
+
+		// Delete all expired quotation sessions (session keys contain underscore separator)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM {$table} WHERE session_key LIKE %s AND session_expiry < %d",
+				'%' . $wpdb->esc_like( '_' ) . '%',
+				$current_time
+			)
+		);
+
+		if ( $deleted === false ) {
+			// Log error if deletion failed
+			error_log( 'WCQ: Failed to cleanup expired quotation sessions' );
+			return 0;
+		}
+
+		if ( $deleted > 0 ) {
+			error_log( sprintf( 'WCQ: Cleaned up %d expired quotation session(s)', $deleted ) );
+		}
+
+		return $deleted;
 	}
 }

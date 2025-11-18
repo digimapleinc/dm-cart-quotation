@@ -23,6 +23,7 @@ class Utilities {
 	 */
 	public static function initialize() {
 		add_action( 'init', [ self::class, 'load_wcq_textdomain' ] );
+		add_action( 'wcq_cleanup_expired_sessions', [ 'WooQuoteRequest\QuoteRequest\Session', 'wcq_cleanup_expired_sessions' ] );
 	}
 
 	/**
@@ -40,7 +41,7 @@ class Utilities {
 	 * Handles plugin activation.
 	 *
 	 * This method checks if another plugin (`woo-cart-quotation`) is active and deactivates
-	 * it if necessary. It then sets default settings for the plugin.
+	 * it if necessary. It then sets default settings for the plugin and schedules cleanup cron.
 	 *
 	 * @link https://developer.wordpress.org/reference/functions/register_activation_hook/
 	 *
@@ -52,6 +53,7 @@ class Utilities {
 		}
 
 		self::maybe_set_default_settings();
+		self::schedule_cleanup_cron();
 	}
 
 	/**
@@ -71,7 +73,8 @@ class Utilities {
 	/**
 	 * Handles plugin deactivation.
 	 *
-	 * This method deletes all plugin settings from the database upon deactivation.
+	 * This method deletes all plugin settings from the database upon deactivation
+	 * and clears scheduled cron jobs.
 	 *
 	 * @link https://developer.wordpress.org/reference/functions/register_deactivation_hook/
 	 *
@@ -80,6 +83,9 @@ class Utilities {
 	public static function handle_deactivation() {
 		// Delete WCQ settings
 		delete_option( 'wcq_settings' );
+
+		// Clear scheduled cron jobs
+		self::clear_scheduled_cron();
 	}
 
 	/**
@@ -145,5 +151,32 @@ class Utilities {
 		</div>
 
 		<?php
+	}
+
+	/**
+	 * Schedules the WP-Cron job for cleaning up expired sessions.
+	 *
+	 * Runs daily to remove expired quotation sessions from the database.
+	 *
+	 * @return void
+	 */
+	public static function schedule_cleanup_cron() {
+		if ( ! wp_next_scheduled( 'wcq_cleanup_expired_sessions' ) ) {
+			wp_schedule_event( time(), 'daily', 'wcq_cleanup_expired_sessions' );
+		}
+	}
+
+	/**
+	 * Clears all scheduled WP-Cron jobs for this plugin.
+	 *
+	 * Called during plugin deactivation.
+	 *
+	 * @return void
+	 */
+	public static function clear_scheduled_cron() {
+		$timestamp = wp_next_scheduled( 'wcq_cleanup_expired_sessions' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'wcq_cleanup_expired_sessions' );
+		}
 	}
 }

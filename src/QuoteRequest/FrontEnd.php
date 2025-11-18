@@ -121,8 +121,14 @@ class FrontEnd {
 	 * @return void
 	 */
 	public static function dm_quotation_button() {
+		/**
+		 * Filter the required capability to use quotation features.
+		 *
+		 * @param string $capability The capability required. Default 'manage_woocommerce'.
+		 */
+		$required_capability = apply_filters( 'wcq_required_capability', 'manage_woocommerce' );
 
-		if ( is_user_logged_in() && current_user_can( 'administrator' ) ) {
+		if ( is_user_logged_in() && current_user_can( $required_capability ) ) {
 			$settings = Utilities::wcq_get_settings();
 			if ( ! $settings ) {
 				return;
@@ -269,8 +275,9 @@ class FrontEnd {
 			wp_die();
 		}
 
-		// Check if user is logged in and has administrator capability
-		if ( ! is_user_logged_in() || ! current_user_can( 'administrator' ) ) {
+		// Check if user is logged in and has required capability
+		$required_capability = apply_filters( 'wcq_required_capability', 'manage_woocommerce' );
+		if ( ! is_user_logged_in() || ! current_user_can( $required_capability ) ) {
 			wp_send_json_error(
 				[
 					'message' => 'You are not allowed to perform this action',
@@ -373,8 +380,9 @@ class FrontEnd {
 			wp_die();
 		}
 
-		// Check if user is logged in and has administrator capability
-		if ( ! is_user_logged_in() || ! current_user_can( 'administrator' ) ) {
+		// Check if user is logged in and has required capability
+		$required_capability = apply_filters( 'wcq_required_capability', 'manage_woocommerce' );
+		if ( ! is_user_logged_in() || ! current_user_can( $required_capability ) ) {
 			wp_send_json_error(
 				[
 					'message' => 'You are not allowed to perform this action',

@@ -351,8 +351,8 @@ class Administration {
 				'hover_background' => isset( $form_data['button_quote']['hover_background'] ) ? sanitize_hex_color( wp_unslash( $form_data['button_quote']['hover_background'] ) ) : $default['button_quote']['hover_background'],
 				'hover_text_color' => isset( $form_data['button_quote']['hover_text_color'] ) ? sanitize_hex_color( wp_unslash( $form_data['button_quote']['hover_text_color'] ) ) : $default['button_quote']['hover_text_color'],
 				'position'         => isset( $form_data['button_quote']['position'] ) ? sanitize_text_field( wp_unslash( $form_data['button_quote']['position'] ) ) : $default['button_quote']['position'],
-				'position_one_per' => isset( $form_data['button_quote']['position_one_per'] ) ? sanitize_text_field( wp_unslash( $form_data['button_quote']['position_one_per'] ) ) : $default['button_quote']['position_one_per'],
-				'position_two_per' => isset( $form_data['button_quote']['position_two_per'] ) ? sanitize_text_field( wp_unslash( $form_data['button_quote']['position_two_per'] ) ) : $default['button_quote']['position_two_per'],
+				'position_one_per' => isset( $form_data['button_quote']['position_one_per'] ) ? max( 0, min( 100, absint( wp_unslash( $form_data['button_quote']['position_one_per'] ) ) ) ) : $default['button_quote']['position_one_per'],
+				'position_two_per' => isset( $form_data['button_quote']['position_two_per'] ) ? max( 0, min( 100, absint( wp_unslash( $form_data['button_quote']['position_two_per'] ) ) ) ) : $default['button_quote']['position_two_per'],
 				'text'             => isset( $form_data['button_quote']['text'] ) ? sanitize_text_field( wp_unslash( $form_data['button_quote']['text'] ) ) : $default['button_quote']['text'],
 			];
 		}
@@ -374,8 +374,8 @@ class Administration {
 				'hover_background' => isset( $form_data['button_empty_cart']['hover_background'] ) ? sanitize_hex_color( wp_unslash( $form_data['button_empty_cart']['hover_background'] ) ) : $default['button_empty_cart']['hover_background'],
 				'hover_text_color' => isset( $form_data['button_empty_cart']['hover_text_color'] ) ? sanitize_hex_color( wp_unslash( $form_data['button_empty_cart']['hover_text_color'] ) ) : $default['button_empty_cart']['hover_text_color'],
 				'position'         => isset( $form_data['button_empty_cart']['position'] ) ? sanitize_text_field( wp_unslash( $form_data['button_empty_cart']['position'] ) ) : $default['button_empty_cart']['position'],
-				'position_one_per' => isset( $form_data['button_empty_cart']['position_one_per'] ) ? sanitize_text_field( wp_unslash( $form_data['button_empty_cart']['position_one_per'] ) ) : $default['button_empty_cart']['position_one_per'],
-				'position_two_per' => isset( $form_data['button_empty_cart']['position_two_per'] ) ? sanitize_text_field( wp_unslash( $form_data['button_empty_cart']['position_two_per'] ) ) : $default['button_empty_cart']['position_two_per'],
+				'position_one_per' => isset( $form_data['button_empty_cart']['position_one_per'] ) ? max( 0, min( 100, absint( wp_unslash( $form_data['button_empty_cart']['position_one_per'] ) ) ) ) : $default['button_empty_cart']['position_one_per'],
+				'position_two_per' => isset( $form_data['button_empty_cart']['position_two_per'] ) ? max( 0, min( 100, absint( wp_unslash( $form_data['button_empty_cart']['position_two_per'] ) ) ) ) : $default['button_empty_cart']['position_two_per'],
 				'text'             => isset( $form_data['button_empty_cart']['text'] ) ? sanitize_text_field( wp_unslash( $form_data['button_empty_cart']['text'] ) ) : $default['button_empty_cart']['text'],
 			];
 		}
